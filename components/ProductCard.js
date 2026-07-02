@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 function formatPrice(price) {
   return price.toLocaleString('en-US', {
@@ -13,14 +14,17 @@ export default function ProductCard({ product }) {
   const isRentable = product.availability === 'Both';
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-lg">
+    <Link
+      href={`/shop/${product.slug}`}
+      className="press-scale group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow duration-300 hover:shadow-lg"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-sand-deep">
         <Image
           src={product.image}
           alt={product.name}
           fill
           sizes="(min-width: 1024px) 280px, (min-width: 640px) 45vw, 90vw"
-          className="object-cover"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-110 group-active:scale-110"
         />
       </div>
 
@@ -53,6 +57,6 @@ export default function ProductCard({ product }) {
 
         <div className="mt-auto" />
       </div>
-    </div>
+    </Link>
   );
 }
