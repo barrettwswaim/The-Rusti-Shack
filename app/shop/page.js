@@ -1,30 +1,47 @@
-import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ShopCategoryNav from '@/components/ShopCategoryNav';
+import CategorySection from '@/components/CategorySection';
+import Reveal from '@/components/Reveal';
+import { categories } from '@/lib/categories';
+import { products } from '@/lib/products';
 
 export const metadata = {
   title: 'Shop | The Rusti Shack',
+  description:
+    'Browse dive, snorkel, surf, fishing, and beach gear from The Rusti Shack. Buy online, or rent select gear in person on Apo Island.',
 };
 
 export default function ShopPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto flex max-w-content flex-col items-center px-4 py-20 text-center sm:px-6 sm:py-28">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-ocean-dark sm:text-4xl">
-          The Shop Is Almost Ready
-        </h1>
-        <p className="mt-4 max-w-md text-base leading-relaxed text-ink/70 sm:text-lg">
-          We&apos;re still setting up online browsing and checkout. In the meantime,
-          come see the full catalog in person at our Apo Island shop.
-        </p>
-        <Link
-          href="/"
-          className="press-scale mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-ocean px-6 py-3 text-base font-semibold tracking-tight text-white shadow-sm transition-colors hover:bg-ocean-dark"
-        >
-          Back to Home
-        </Link>
+      <ShopCategoryNav />
+
+      <main>
+        <div className="mx-auto max-w-content px-4 pt-10 sm:px-6 sm:pt-14">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <h1 className="font-heading text-3xl font-semibold tracking-tight text-ocean-dark sm:text-4xl">
+              Shop The Rusti Shack
+            </h1>
+            <p className="mt-3 text-base leading-relaxed text-ink/70 sm:text-lg">
+              Everything below can be bought online and shipped to you. Items marked
+              &quot;Also Rentable&quot; can also be rented in person at our Apo Island
+              shop for a same-day rental — online orders are for purchase only.
+            </p>
+          </Reveal>
+        </div>
+
+        {categories.map((category, index) => (
+          <CategorySection
+            key={category.slug}
+            category={category}
+            products={products.filter((p) => p.categorySlug === category.slug)}
+            tinted={index % 2 === 1}
+          />
+        ))}
       </main>
+
       <Footer />
     </>
   );
