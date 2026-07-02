@@ -1,3 +1,12 @@
 # Raw unzipped photo download - kept locally as the untouched source archive.
 # The organized, web-ready copies live in public/images/products/.
 Rusti-Shack-Images/
+
+# Next.js website
+node_modules/
+.next/
+out/
+.env*.local
+.vercel
+npm-debug.log*
+.DS_Store
