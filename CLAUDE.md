@@ -84,3 +84,5 @@ Every product can be:
 - No application code exists yet — a prior Next.js scaffold was intentionally removed. This repo currently holds product data (`The_Rusti_Shack_Dataset.xlsx`, `The_Rusti_Shack_Apr2026_Update.xlsx`), organized product photography (`public/images/products/`), and planning docs (`PHOTO_PLAN.md`, `image-manifest.csv`, this file).
 - `public/images/site/` is a placeholder for non-product images (logo, homepage hero, category banners, store photos, About photo, promo banners) that haven't been sourced yet — check `PHOTO_PLAN.md` for the current list before assuming they exist.
 - Do not scaffold or build the actual site until asked — this file exists so that whenever building starts, it starts with the right foundation instead of a generic template.
+
+Follow every rule in SECURITY.md.
