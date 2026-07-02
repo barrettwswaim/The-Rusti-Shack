@@ -4,7 +4,7 @@ import ShopCategoryNav from '@/components/ShopCategoryNav';
 import CategorySection from '@/components/CategorySection';
 import Reveal from '@/components/Reveal';
 import { categories } from '@/lib/categories';
-import { products } from '@/lib/products';
+import { getShopProducts } from '@/lib/products';
 
 export const metadata = {
   title: 'Shop | The Rusti Shack',
@@ -12,7 +12,13 @@ export const metadata = {
     'Browse dive, snorkel, surf, fishing, and beach gear from The Rusti Shack. Buy online, or rent select gear in person on Apo Island.',
 };
 
-export default function ShopPage() {
+// Product data comes from Supabase - re-check for catalog changes at most
+// once an hour rather than only on a full redeploy.
+export const revalidate = 3600;
+
+export default async function ShopPage() {
+  const products = await getShopProducts();
+
   return (
     <>
       <Header />

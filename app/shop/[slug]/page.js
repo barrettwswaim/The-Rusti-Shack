@@ -4,18 +4,19 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductGallery from '@/components/ProductGallery';
 import ProductOptions from '@/components/ProductOptions';
-import { products } from '@/lib/products';
+import { getAllProductSlugs, getProductBySlug } from '@/lib/products';
 
-export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+// Product data comes from Supabase - re-check for catalog changes at most
+// once an hour rather than only on a full redeploy.
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const slugs = await getAllProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
-function getProduct(slug) {
-  return products.find((product) => product.slug === slug);
-}
-
-export function generateMetadata({ params }) {
-  const product = getProduct(params.slug);
+export async function generateMetadata({ params }) {
+  const product = await getProductBySlug(params.slug);
   if (!product) {
     return { title: 'Product Not Found | The Rusti Shack' };
   }
@@ -29,8 +30,8 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function ProductPage({ params }) {
-  const product = getProduct(params.slug);
+export default async function ProductPage({ params }) {
+  const product = await getProductBySlug(params.slug);
 
   if (!product) {
     notFound();

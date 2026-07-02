@@ -6,7 +6,11 @@ Rusti-Shack-Images/
 node_modules/
 .next/
 out/
-.env*.local
 .vercel
 npm-debug.log*
 .DS_Store
+
+# Secrets and local environment config - never commit real values.
+# .env.example is intentionally kept (names/placeholders only).
+.env*
+!.env.example
