@@ -10,3 +10,80 @@ body {
   background-color: #FBF3E6;
   color: #22333B;
 }
+
+/* ---- Scroll-triggered reveal (used by components/Reveal.js) ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  will-change: opacity, transform;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- Hero entrance + slow "living photo" zoom ---- */
+@keyframes fade-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-hero-in {
+  animation: fade-up-in 0.9s ease-out both;
+}
+.animate-hero-in-delay {
+  animation: fade-up-in 0.9s ease-out 0.18s both;
+}
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.09) translate3d(-1.2%, -1.5%, 0);
+  }
+}
+.animate-ken-burns {
+  animation: ken-burns 22s ease-in-out infinite alternate;
+}
+
+/* ---- Tactile press feedback for buttons/links ---- */
+.press-scale {
+  transition: transform 0.15s ease-out;
+}
+.press-scale:hover {
+  transform: scale(1.04);
+}
+.press-scale:active {
+  transform: scale(0.97);
+}
+
+/* Respect reduced-motion: kill all custom animation/transition movement */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-hero-in,
+  .animate-hero-in-delay,
+  .animate-ken-burns {
+    animation: none;
+  }
+  .press-scale {
+    transition: none;
+  }
+  .press-scale:hover,
+  .press-scale:active {
+    transform: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

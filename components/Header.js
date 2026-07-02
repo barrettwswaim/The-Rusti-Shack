@@ -3,16 +3,16 @@ import Link from 'next/link';
 const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'Shop', href: '/shop' },
-  { label: 'About Apo Island', href: '/about' },
+  { label: 'About', hrefLabelSuffix: ' Apo Island', href: '/about' },
 ];
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 bg-sand/95 backdrop-blur border-b border-sand-deep">
+    <header className="sticky top-0 z-50 border-b border-sand-deep bg-sand/95 backdrop-blur">
       <div className="mx-auto flex max-w-content items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="group flex items-center gap-2">
           <span
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-ocean text-sand"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-ocean text-sand transition-transform duration-300 ease-out group-hover:-rotate-6 group-hover:scale-110"
             aria-hidden="true"
           >
             <svg
@@ -49,14 +49,17 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="flex items-center gap-3 text-sm sm:gap-6 sm:text-base">
+        <nav aria-label="Primary" className="flex items-center gap-4 text-sm sm:gap-7 sm:text-base">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="font-medium text-ink/80 transition hover:text-ocean"
+              className="relative py-1 font-medium tracking-tight text-ink/80 transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-ocean after:transition-all after:duration-300 hover:text-ocean hover:after:w-full"
             >
               {link.label}
+              {link.hrefLabelSuffix && (
+                <span className="hidden sm:inline">{link.hrefLabelSuffix}</span>
+              )}
             </Link>
           ))}
         </nav>

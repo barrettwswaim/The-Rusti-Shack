@@ -6,8 +6,8 @@ export default function Footer() {
       <div className="mx-auto max-w-content px-4 py-10 sm:px-6">
         <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
           <div>
-            <p className="font-heading text-lg font-semibold">The Rusti Shack</p>
-            <p className="mt-2 max-w-xs text-sm text-sand/80">
+            <p className="font-heading text-lg font-semibold tracking-tight">The Rusti Shack</p>
+            <p className="mt-2 max-w-xs text-sm leading-relaxed text-sand/80">
               Dive &amp; snorkel gear, sold and rented on Apo Island, Philippines.
             </p>
           </div>
@@ -28,9 +28,9 @@ export default function Footer() {
               Explore
             </p>
             <ul className="mt-2 space-y-1">
-              <li><Link href="/" className="hover:text-white">Home</Link></li>
-              <li><Link href="/shop" className="hover:text-white">Shop</Link></li>
-              <li><Link href="/about" className="hover:text-white">About Apo Island</Link></li>
+              <li><Link href="/" className="transition-colors hover:text-white">Home</Link></li>
+              <li><Link href="/shop" className="transition-colors hover:text-white">Shop</Link></li>
+              <li><Link href="/about" className="transition-colors hover:text-white">About Apo Island</Link></li>
             </ul>
           </div>
         </div>
