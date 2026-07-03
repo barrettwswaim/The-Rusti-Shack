@@ -45,7 +45,7 @@ export default function CartLineItem({ item, onUpdateQuantity, onRemove }) {
           <button
             type="button"
             onClick={() => onRemove(item.sku)}
-            className="press-scale text-sm font-medium text-ink/50 underline-offset-2 hover:text-coral-dark hover:underline"
+            className="press-scale flex min-h-[44px] items-center px-2 text-sm font-medium text-ink/50 underline-offset-2 hover:text-coral-dark hover:underline"
           >
             Remove
           </button>
@@ -65,7 +65,7 @@ export default function CartLineItem({ item, onUpdateQuantity, onRemove }) {
           type="button"
           onClick={() => onRemove(item.sku)}
           aria-label={`Remove ${item.name} from cart`}
-          className="press-scale flex h-9 w-9 items-center justify-center rounded-full text-ink/40 transition-colors hover:bg-sand-deep hover:text-coral-dark"
+          className="press-scale flex h-11 w-11 items-center justify-center rounded-full text-ink/40 transition-colors hover:bg-sand-deep hover:text-coral-dark"
         >
           <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -95,7 +95,7 @@ function QuantityStepper({ quantity, onChange }) {
         type="button"
         onClick={() => onChange(quantity - 1)}
         aria-label="Decrease quantity"
-        className="press-scale flex h-9 w-9 items-center justify-center rounded-full text-lg font-medium text-ink/70 hover:bg-sand-deep"
+        className="press-scale flex h-11 w-11 items-center justify-center rounded-full text-lg font-medium text-ink/70 hover:bg-sand-deep"
       >
         −
       </button>
@@ -106,7 +106,7 @@ function QuantityStepper({ quantity, onChange }) {
         type="button"
         onClick={() => onChange(quantity + 1)}
         aria-label="Increase quantity"
-        className="press-scale flex h-9 w-9 items-center justify-center rounded-full text-lg font-medium text-ink/70 hover:bg-sand-deep"
+        className="press-scale flex h-11 w-11 items-center justify-center rounded-full text-lg font-medium text-ink/70 hover:bg-sand-deep"
       >
         +
       </button>
