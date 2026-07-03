@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cartContext';
 import {
@@ -10,11 +10,18 @@ import {
   buildStripeCheckoutPayload,
 } from '@/lib/checkout';
 
-// Every field lives in plain component state only - never localStorage,
-// never Supabase, never a network request. It exists only for as long as
-// this page is open, which is deliberately more conservative than asked:
-// even the cart (which does persist) never gets this kind of personal
-// detail added to it.
+const FIELD_ORDER = [
+  'firstName',
+  'lastName',
+  'email',
+  'phone',
+  'street',
+  'city',
+  'region',
+  'postalCode',
+  'country',
+];
+
 export default function CheckoutForm() {
   const router = useRouter();
   const cart = useCart();
@@ -22,6 +29,7 @@ export default function CheckoutForm() {
   const [fields, setFields] = useState(emptyCheckoutFields);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const fieldRefs = useRef({});
 
   function updateField(key, value) {
     const next = { ...fields, [key]: value };
@@ -38,11 +46,15 @@ export default function CheckoutForm() {
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
+      const firstErrorKey = FIELD_ORDER.find((key) => nextErrors[key]);
+      const node = firstErrorKey && fieldRefs.current[firstErrorKey];
+      if (node) {
+        node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        node.focus({ preventScroll: true });
+      }
       return;
     }
 
-    // Ready for the next stage (Part 6.7: Stripe). Held in a local
-    // variable only - not logged, not stored, not sent anywhere yet.
     buildStripeCheckoutPayload(fields, cart);
     router.push('/checkout/payment');
   }
@@ -60,6 +72,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('firstName', v)}
             error={errors.firstName}
             autoComplete="given-name"
+            inputRef={(el) => (fieldRefs.current.firstName = el)}
           />
           <TextField
             label="Last Name"
@@ -67,6 +80,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('lastName', v)}
             error={errors.lastName}
             autoComplete="family-name"
+            inputRef={(el) => (fieldRefs.current.lastName = el)}
           />
           <TextField
             label="Email"
@@ -75,6 +89,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('email', v)}
             error={errors.email}
             autoComplete="email"
+            inputRef={(el) => (fieldRefs.current.email = el)}
           />
           <TextField
             label="Phone"
@@ -83,6 +98,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('phone', v)}
             error={errors.phone}
             autoComplete="tel"
+            inputRef={(el) => (fieldRefs.current.phone = el)}
           />
         </div>
       </fieldset>
@@ -99,6 +115,7 @@ export default function CheckoutForm() {
               onChange={(v) => updateField('street', v)}
               error={errors.street}
               autoComplete="street-address"
+              inputRef={(el) => (fieldRefs.current.street = el)}
             />
           </div>
           <TextField
@@ -107,6 +124,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('city', v)}
             error={errors.city}
             autoComplete="address-level2"
+            inputRef={(el) => (fieldRefs.current.city = el)}
           />
           <TextField
             label="Region / State"
@@ -114,6 +132,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('region', v)}
             error={errors.region}
             autoComplete="address-level1"
+            inputRef={(el) => (fieldRefs.current.region = el)}
           />
           <TextField
             label="Postal Code"
@@ -121,6 +140,7 @@ export default function CheckoutForm() {
             onChange={(v) => updateField('postalCode', v)}
             error={errors.postalCode}
             autoComplete="postal-code"
+            inputRef={(el) => (fieldRefs.current.postalCode = el)}
           />
 
           <div>
@@ -129,6 +149,7 @@ export default function CheckoutForm() {
             </label>
             <select
               id="country"
+              ref={(el) => (fieldRefs.current.country = el)}
               value={fields.country}
               onChange={(e) => updateField('country', e.target.value)}
               autoComplete="country-name"
@@ -159,7 +180,7 @@ export default function CheckoutForm() {
           className="h-5 w-5 flex-shrink-0 rounded border-black/20 text-ocean focus:ring-ocean"
         />
         <span className="text-sm text-ink/80">
-          Sign me up for the loyalty list — first dibs on new gear and returning-customer perks.
+          Sign me up for the loyalty list, first dibs on new gear and returning-customer perks.
         </span>
       </label>
 
@@ -170,13 +191,13 @@ export default function CheckoutForm() {
         Continue to Payment
       </button>
       <p className="mt-2 text-center text-xs text-ink/50">
-        You won&apos;t be charged yet — online payment isn&apos;t connected yet.
+        You will not be charged yet, online payment is not connected yet.
       </p>
     </form>
   );
 }
 
-function TextField({ label, value, onChange, error, type = 'text', autoComplete }) {
+function TextField({ label, value, onChange, error, type = 'text', autoComplete, inputRef }) {
   const id = `checkout-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
   return (
     <div>
@@ -185,6 +206,7 @@ function TextField({ label, value, onChange, error, type = 'text', autoComplete 
       </label>
       <input
         id={id}
+        ref={inputRef}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
