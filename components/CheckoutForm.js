@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cartContext';
 import {
   COUNTRIES,
@@ -23,12 +22,13 @@ const FIELD_ORDER = [
 ];
 
 export default function CheckoutForm() {
-  const router = useRouter();
   const cart = useCart();
 
   const [fields, setFields] = useState(emptyCheckoutFields);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const fieldRefs = useRef({});
 
   function updateField(key, value) {
@@ -39,8 +39,9 @@ export default function CheckoutForm() {
     }
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setSubmitError(null);
     setSubmitted(true);
     const nextErrors = validateCheckoutForm(fields);
     setErrors(nextErrors);
@@ -55,8 +56,29 @@ export default function CheckoutForm() {
       return;
     }
 
-    buildStripeCheckoutPayload(fields, cart);
-    router.push('/checkout/payment');
+    setSubmitting(true);
+    try {
+      const payload = buildStripeCheckoutPayload(fields, cart);
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        setSubmitError(data.error || 'Something went wrong starting checkout. Please try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Hand off to Stripe's hosted checkout page. Cart clears only on
+      // the confirmation page, after Stripe confirms the payment.
+      window.location.href = data.url;
+    } catch {
+      setSubmitError('Something went wrong starting checkout. Please check your connection and try again.');
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -184,14 +206,22 @@ export default function CheckoutForm() {
         </span>
       </label>
 
+      {submitError && (
+        <p className="mt-4 rounded-xl bg-coral/10 px-4 py-3 text-sm text-coral-dark" role="alert">
+          {submitError}
+        </p>
+      )}
+
       <button
         type="submit"
-        className="press-scale mt-8 flex min-h-[44px] w-full items-center justify-center rounded-full bg-coral px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-coral-dark"
+        disabled={submitting}
+        className="press-scale mt-8 flex min-h-[44px] w-full items-center justify-center rounded-full bg-coral px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-coral-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Continue to Payment
+        {submitting ? 'Redirecting to Payment...' : 'Continue to Payment'}
       </button>
       <p className="mt-2 text-center text-xs text-ink/50">
-        You will not be charged yet, online payment is not connected yet.
+        You will be taken to Stripe&apos;s secure checkout page. This store is in test mode - no
+        real charge will occur.
       </p>
     </form>
   );
