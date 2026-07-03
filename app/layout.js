@@ -1,4 +1,5 @@
 import './globals.css';
+import { CartProvider } from '@/lib/cartContext';
 
 export const metadata = {
   title: 'The Rusti Shack | Dive, Snorkel & Island Gear on Apo Island',
@@ -14,7 +15,9 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="font-body bg-sand text-ink antialiased">{children}</body>
+      <body className="font-body bg-sand text-ink antialiased">
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }

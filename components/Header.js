@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CartIcon from '@/components/CartIcon';
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -49,20 +50,24 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="flex items-center gap-4 text-sm sm:gap-7 sm:text-base">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="relative py-1 font-medium tracking-tight text-ink/80 transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-ocean after:transition-all after:duration-300 hover:text-ocean hover:after:w-full"
-            >
-              {link.label}
-              {link.hrefLabelSuffix && (
-                <span className="hidden sm:inline">{link.hrefLabelSuffix}</span>
-              )}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex items-center gap-1 sm:gap-3">
+          <nav aria-label="Primary" className="flex items-center gap-4 text-sm sm:gap-7 sm:text-base">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="relative py-1 font-medium tracking-tight text-ink/80 transition-colors after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-ocean after:transition-all after:duration-300 hover:text-ocean hover:after:w-full"
+              >
+                {link.label}
+                {link.hrefLabelSuffix && (
+                  <span className="hidden sm:inline">{link.hrefLabelSuffix}</span>
+                )}
+              </Link>
+            ))}
+          </nav>
+
+          <CartIcon />
+        </div>
       </div>
     </header>
   );
