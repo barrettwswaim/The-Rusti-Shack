@@ -1,61 +1,56 @@
+'use client';
+
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import CheckoutForm from '@/components/CheckoutForm';
+import CheckoutOrderSummary from '@/components/CheckoutOrderSummary';
+import { useCart } from '@/lib/cartContext';
 
-export const metadata = {
-  title: 'Checkout | The Rusti Shack',
-  description: 'Online checkout for The Rusti Shack is coming soon.',
-};
-
-// Placeholder only - no payment form, no order data collected or written
-// anywhere yet. Real checkout (Stripe Checkout, server-side price lookup,
-// webhook-verified order confirmation) is a later build, per SECURITY.md
-// section 5.
+// Collects and validates customer + shipping info for the order. Nothing
+// here writes to Supabase - Customers_Core, Customers_Contact, Orders,
+// and OrderLines stay at zero rows, RLS on, zero policies, exactly as
+// built. Stripe isn't connected yet; "Continue to Payment" leads to a
+// clearly labeled placeholder, not a real charge.
 export default function CheckoutPage() {
+  const { items, hydrated } = useCart();
+
   return (
     <>
       <Header />
       <main>
-        <div className="mx-auto max-w-content px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-md rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-black/5 sm:p-12">
-            <span
-              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-lagoon text-ocean"
-              aria-hidden="true"
-            >
-              <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M12 8v4l2.5 2.5M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
+        <div className="mx-auto max-w-content px-4 py-8 sm:px-6 sm:py-12">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-ocean-dark sm:text-4xl">
+            Checkout
+          </h1>
 
-            <h1 className="mt-4 font-heading text-2xl font-semibold tracking-tight text-ink">
-              Checkout Is Coming Soon
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-ink/70 sm:text-base">
-              We&apos;re still building online checkout for The Rusti Shack. Your cart is
-              saved, so it&apos;ll be right here when checkout goes live.
-            </p>
+          {!hydrated && <p className="mt-8 text-sm text-ink/50">Loading your cart&hellip;</p>}
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link
-                href="/cart"
-                className="press-scale flex min-h-[44px] items-center justify-center rounded-full bg-white px-6 py-3 text-base font-semibold text-ink ring-1 ring-black/10 transition-colors hover:bg-sand-deep"
-              >
-                Back to Cart
-              </Link>
+          {hydrated && items.length === 0 && (
+            <div className="mt-8 rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-black/5 sm:p-12">
+              <p className="font-heading text-lg font-semibold text-ink">Your cart is empty</p>
+              <p className="mt-2 text-sm text-ink/60">
+                Add something to your cart before checking out.
+              </p>
               <Link
                 href="/shop"
-                className="press-scale flex min-h-[44px] items-center justify-center rounded-full bg-ocean px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-ocean-dark"
+                className="press-scale mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-ocean px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-ocean-dark"
               >
                 Keep Shopping
               </Link>
             </div>
-          </div>
+          )}
+
+          {hydrated && items.length > 0 && (
+            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:items-start">
+              <div className="lg:col-span-2">
+                <CheckoutForm />
+              </div>
+              <div className="lg:col-span-1">
+                <CheckoutOrderSummary />
+              </div>
+            </div>
+          )}
         </div>
       </main>
       <Footer />
