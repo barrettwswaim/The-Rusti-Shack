@@ -23,4 +23,41 @@ export async function POST(request) {
 
   if (!rateLimit.allowed) {
     // Fail closed either way: locked out, or the rate-limit check itself
-    // couldn't run (e.g. database unreachable). Same generic me
+    // couldn't run (e.g. database unreachable). Same generic message and
+    // status either way so a locked-out attacker learns nothing extra.
+    console.error(
+      `Manager login: request blocked (${rateLimit.reason}) for ip=${rateLimit.ip}`
+    );
+    return NextResponse.json(
+      { error: 'Too many attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+  }
+
+  const password = typeof body?.password === 'string' ? body.password : '';
+
+  if (!checkPassword(password)) {
+    console.error(`Manager login: incorrect password attempt from ip=${rateLimit.ip}`);
+    await recordFailedAttempt(rateLimit.ip);
+    return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 });
+  }
+
+  await clearFailedAttempts(rateLimit.ip);
+
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(MANAGER_COOKIE_NAME, createSessionCookieValue(), {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: Math.floor(MANAGER_SESSION_DURATION_MS / 1000),
+  });
+  return response;
+}
