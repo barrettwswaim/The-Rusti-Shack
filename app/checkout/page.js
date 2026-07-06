@@ -8,10 +8,11 @@ import CheckoutOrderSummary from '@/components/CheckoutOrderSummary';
 import { useCart } from '@/lib/cartContext';
 
 // Collects and validates customer + shipping info for the order. Nothing
-// here writes to Supabase - Customers_Core, Customers_Contact, Orders,
-// and OrderLines stay at zero rows, RLS on, zero policies, exactly as
-// built. Stripe isn't connected yet; "Continue to Payment" leads to a
-// clearly labeled placeholder, not a real charge.
+// here writes to Supabase directly - CheckoutForm posts to /api/checkout,
+// which re-verifies everything server-side and creates a real Stripe
+// Checkout Session (test mode); Customers_Core, Customers_Contact,
+// Orders, and OrderLines are only ever written by the signature-verified
+// webhook after Stripe confirms payment, never by this page.
 export default function CheckoutPage() {
   const { items, hydrated } = useCart();
 

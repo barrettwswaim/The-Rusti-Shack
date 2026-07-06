@@ -11,6 +11,12 @@ function formatPrice(price) {
 }
 
 export default function ProductCard({ product }) {
+  // Mirrors ProductOptions.js on the detail page: every product must
+  // clearly state whether it's for sale, rental only, or both (CLAUDE.md
+  // section 4). No current SKU is "Rental only", but the badge must still
+  // be correct if one is ever added - never show "For Sale" for an item
+  // that can't actually be bought online.
+  const isPurchasable = product.availability === 'Sale only' || product.availability === 'Both';
   const isRentable = product.availability === 'Both';
 
   return (
@@ -40,7 +46,7 @@ export default function ProductCard({ product }) {
 
         <div className="mt-2 flex flex-wrap gap-1.5">
           <span className="inline-flex items-center rounded-full bg-sand-deep px-2.5 py-1 text-xs font-medium text-ocean-dark">
-            For Sale
+            {isPurchasable ? 'For Sale' : 'Rental Only'}
           </span>
           {isRentable && (
             <span className="inline-flex items-center rounded-full bg-coral/15 px-2.5 py-1 text-xs font-medium text-coral-dark">
@@ -52,6 +58,12 @@ export default function ProductCard({ product }) {
         {isRentable && (
           <p className="mt-2 text-xs leading-relaxed text-ink/60">
             Also available to rent in person on Apo Island.
+          </p>
+        )}
+
+        {!isPurchasable && (
+          <p className="mt-2 text-xs leading-relaxed text-ink/60">
+            Available to rent in person at our Apo Island shop - not sold online.
           </p>
         )}
 
