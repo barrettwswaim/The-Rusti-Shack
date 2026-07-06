@@ -38,7 +38,8 @@ async function findOrderBySession(sessionId, attempts = 3, delayMs = 1000) {
 // the webhook already created. Visiting this URL with a fake or unpaid
 // session ID shows no order number at all.
 export default async function ConfirmationPage({ searchParams }) {
-  const sessionId = searchParams?.session_id;
+  const resolvedSearchParams = await searchParams;
+  const sessionId = resolvedSearchParams?.session_id;
 
   let verifiedPaid = false;
   let order = null;
