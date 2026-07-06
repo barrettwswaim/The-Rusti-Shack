@@ -10,9 +10,9 @@ import { useCart } from '@/lib/cartContext';
 // Collects and validates customer + shipping info for the order. Nothing
 // here writes to Supabase directly - CheckoutForm posts to /api/checkout,
 // which re-verifies everything server-side and creates a real Stripe
-// Checkout Session (test mode); Customers_Core, Customers_Contact,
-// Orders, and OrderLines are only ever written by the signature-verified
-// webhook after Stripe confirms payment, never by this page.
+// Checkout Session; Customers_Core, Customers_Contact, Orders, and
+// OrderLines are only ever written by the signature-verified webhook
+// after Stripe confirms payment, never by this page.
 export default function CheckoutPage() {
   const { items, hydrated } = useCart();
 

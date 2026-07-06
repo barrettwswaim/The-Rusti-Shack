@@ -220,8 +220,7 @@ export default function CheckoutForm() {
         {submitting ? 'Redirecting to Payment...' : 'Continue to Payment'}
       </button>
       <p className="mt-2 text-center text-xs text-ink/50">
-        You will be taken to Stripe&apos;s secure checkout page. This store is in test mode - no
-        real charge will occur.
+        You will be taken to Stripe&apos;s secure checkout page to complete your payment.
       </p>
     </form>
   );
