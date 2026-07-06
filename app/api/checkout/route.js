@@ -93,11 +93,24 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    // Defense in depth: a null/zero/negative price in Supabase should
+    // never silently become a free or negative-cost line item. Fail
+    // loudly and refuse checkout instead of trusting the DB blindly.
+    const unitPrice = Number(product.unit_price);
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+      console.error('Checkout: product has invalid unit_price, refusing to checkout', product.sku, product.unit_price);
+      return NextResponse.json(
+        { error: `${product.product_name} isn't available to purchase right now. Please try again later.` },
+        { status: 400 }
+      );
+    }
+
     verifiedLines.push({
       sku: product.sku,
       name: product.product_name,
       quantity: line.quantity,
-      unitPrice: Number(product.unit_price),
+      unitPrice,
       unitCost: product.unit_cost === null ? null : Number(product.unit_cost),
     });
   }
