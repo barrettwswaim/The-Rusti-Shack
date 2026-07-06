@@ -11,9 +11,11 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 // separate route).
 export const dynamic = 'force-dynamic';
 
-// A slightly wider window than the on-page table (which is meant for
-// a quick glance) since this is the actual record-keeping export.
-const CSV_ORDER_LIMIT = 1000;
+// Full order history, not just a recent window - this is the actual
+// record-keeping export, distinct from the on-page 7-day snapshot.
+// Web order volume is small (started at ORD900001), so a generous cap
+// is just headroom, not a real limit in practice.
+const CSV_ORDER_LIMIT = 5000;
 
 function csvEscape(value) {
   const str = value === null || value === undefined ? '' : String(value);
@@ -30,25 +32,22 @@ function toCsvRow(fields) {
 async function loadSalesForExport() {
   const { data: orders, error: ordersError } = await supabaseAdmin
     .from('Orders')
-    .select('OrderID, OrderDate, CustID, Channel, OrderTotal, PaymentMethod')
+    .select('OrderID, OrderDate, CustID, OrderTotal, ShippingFee, PaymentMethod')
     .order('OrderDate', { ascending: false })
     .order('OrderID', { ascending: false })
     .limit(CSV_ORDER_LIMIT);
 
   if (ordersError || !orders) {
     console.error('Manager CSV: failed to load Orders', ordersError?.message);
-    return { orders: [], customersById: new Map(), linesByOrderId: new Map() };
+    return { orders: [], customersById: new Map(), linesByOrderId: new Map(), productNamesBySku: new Map() };
   }
 
   const custIds = [...new Set(orders.map((o) => o.CustID).filter(Boolean))];
   const orderIds = orders.map((o) => o.OrderID);
 
-  const [{ data: core }, { data: contact }, { data: lines }] = await Promise.all([
+  const [{ data: core }, { data: lines }] = await Promise.all([
     custIds.length
-      ? supabaseAdmin.from('Customers_Core').select('CustomerID, FirstName, LastName').in('CustomerID', custIds)
-      : Promise.resolve({ data: [] }),
-    custIds.length
-      ? supabaseAdmin.from('Customers_Contact').select('CustomerID, Email').in('CustomerID', custIds)
+      ? supabaseAdmin.from('Customers_Core').select('CustomerID, FirstName, LastName, Country').in('CustomerID', custIds)
       : Promise.resolve({ data: [] }),
     orderIds.length
       ? supabaseAdmin
@@ -61,22 +60,29 @@ async function loadSalesForExport() {
 
   const customersById = new Map();
   for (const row of core || []) {
-    customersById.set(row.CustomerID, { name: `${row.FirstName} ${row.LastName}`.trim(), email: null });
-  }
-  for (const row of contact || []) {
-    const existing = customersById.get(row.CustomerID) || { name: null, email: null };
-    existing.email = row.Email;
-    customersById.set(row.CustomerID, existing);
+    customersById.set(row.CustomerID, {
+      firstName: row.FirstName,
+      lastName: row.LastName,
+      country: row.Country,
+    });
   }
 
   const linesByOrderId = new Map();
+  const skus = new Set();
   for (const line of lines || []) {
     const existing = linesByOrderId.get(line.OrderID) || [];
     existing.push(line);
     linesByOrderId.set(line.OrderID, existing);
+    skus.add(line.ProductCode);
   }
 
-  return { orders, customersById, linesByOrderId };
+  const { data: products } = skus.size
+    ? await supabaseAdmin.from('products').select('sku, product_name').in('sku', [...skus])
+    : { data: [] };
+
+  const productNamesBySku = new Map((products || []).map((p) => [p.sku, p.product_name]));
+
+  return { orders, customersById, linesByOrderId, productNamesBySku };
 }
 
 export async function GET() {
@@ -88,42 +94,44 @@ export async function GET() {
     return NextResponse.json({ error: 'Not authorized.' }, { status: 401 });
   }
 
-  const { orders, customersById, linesByOrderId } = await loadSalesForExport();
+  const { orders, customersById, linesByOrderId, productNamesBySku } = await loadSalesForExport();
 
+  // Exact column set and order as specified - one row per item sold.
   let csv = toCsvRow([
     'OrderID',
     'OrderDate',
-    'CustomerName',
-    'CustomerEmail',
-    'Channel',
-    'PaymentMethod',
-    'OrderTotal',
-    'LineNumber',
+    'FirstName',
+    'LastName',
+    'Country',
     'ProductCode',
+    'ProductName',
     'Quantity',
     'UnitPrice',
     'LineRevenue',
+    'ShippingFee',
+    'OrderTotal',
+    'PaymentMethod',
   ]);
 
   for (const order of orders) {
     const customer = customersById.get(order.CustID);
     const lines = linesByOrderId.get(order.OrderID) || [];
-    const rows = lines.length ? lines : [null];
 
-    for (const line of rows) {
+    for (const line of lines) {
       csv += toCsvRow([
         order.OrderID,
         order.OrderDate,
-        customer?.name || order.CustID,
-        customer?.email || '',
-        order.Channel,
-        order.PaymentMethod || '',
+        customer?.firstName || '',
+        customer?.lastName || '',
+        customer?.country || '',
+        line.ProductCode,
+        productNamesBySku.get(line.ProductCode) || '',
+        line.Quantity,
+        line.UnitPrice,
+        line.LineRevenue,
+        order.ShippingFee,
         order.OrderTotal,
-        line?.LineNumber ?? '',
-        line?.ProductCode ?? '',
-        line?.Quantity ?? '',
-        line?.UnitPrice ?? '',
-        line?.LineRevenue ?? '',
+        order.PaymentMethod || '',
       ]);
     }
   }
