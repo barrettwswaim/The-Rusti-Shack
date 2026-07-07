@@ -19,6 +19,7 @@ import {
   getAssociatePerformance,
   getDiscountImpact,
   getSaleVsRentalBehavior,
+  getInventoryStatus,
 } from '@/lib/managementData';
 import ManagementLoginForm from '@/components/ManagementLoginForm';
 import ManagementLogoutButton from '@/components/ManagementLogoutButton';
@@ -34,6 +35,9 @@ import ProductProfitabilitySection from '@/components/management/ProductProfitab
 import CustomerOperationsInsights from '@/components/management/CustomerOperationsInsights';
 import QuickOverview from '@/components/management/QuickOverview';
 import RecentOrdersTable from '@/components/management/RecentOrdersTable';
+import ForecastSection from '@/components/management/ForecastSection';
+import InventoryStatusSection from '@/components/management/InventoryStatusSection';
+import ExportsSection from '@/components/management/ExportsSection';
 
 export const metadata = {
   title: 'Back Office | The Rusti Shack',
@@ -80,6 +84,8 @@ export default async function ManagementPage({ searchParams }) {
     associates,
     discounts,
     saleVsRental,
+    monthlyAllYears,
+    inventoryStatus,
   ] = await Promise.all([
     getAvailableYears(),
     getLast7Days(),
@@ -95,6 +101,8 @@ export default async function ManagementPage({ searchParams }) {
     getAssociatePerformance(selectedYear),
     getDiscountImpact(selectedYear),
     getSaleVsRentalBehavior(selectedYear),
+    getMonthlyPerformance(null),
+    getInventoryStatus(),
   ]);
 
   const seasonalityInsight = buildSeasonalityInsight(monthly);
@@ -172,9 +180,11 @@ export default async function ManagementPage({ searchParams }) {
           yearLabel={yearLabel}
         />
 
-        <p className="mt-10 text-xs text-ink/40">
-          More sections (Forecasting, Inventory) are being built out below this milestone.
-        </p>
+        <ForecastSection monthly={monthlyAllYears} />
+
+        <InventoryStatusSection items={inventoryStatus} />
+
+        <ExportsSection yearParam={selectedYear || ''} yearLabel={yearLabel} />
       </div>
     </main>
   );
