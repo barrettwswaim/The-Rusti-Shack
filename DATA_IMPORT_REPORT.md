@@ -78,30 +78,24 @@ Every check below came back clean — zero problems found in either workbook:
 - **Inventory is a single snapshot,** not a time series — `LastCountDate` is 2026-03-31 for every SKU. There is no restock/movement history and no supplier lead-time field anywhere in the source data. The reorder-point model will use the given `OnHandQty` as the current snapshot and real SKU-level sales+rental velocity from the transaction history for demand, but lead time and safety-stock parameters will be clearly labeled manager-editable assumptions, not sourced data — see `INVENTORY_METHOD.md` once built.
 - **~2,481 of 2,500 customers have never been billed a real card** — this is historical/simulated business data (the workbook's own `Notice` sheet calls it an "Educational Case Dataset"), not real Stripe customers. Only the 1 existing `Customers_Core` row from the live site represents an actual Stripe transaction.
 
-## 7. Import method and reconciliation
+## 7. Import method and reconciliation — COMPLETE
 
-Schema migrations (new tables, real primary/foreign keys, RLS enabled with zero public policies — same private-by-default posture as every other business table) are applied directly. Results:
+Schema migrations (new tables, real primary/foreign keys, RLS enabled with zero public policies — same private-by-default posture as every other business table) were applied directly. All ten tables are now fully imported and live in Supabase, verified by direct row-count query and a full referential-integrity sweep (zero orphaned orders, order lines, rentals, or promotions):
 
-| Table | Rows | Status |
-|---|---|---|
-| `Stores` | 3 | **Imported** directly, live in Supabase now. |
-| `Employees` | 8 (7 real + 1 synthetic `WEB` row) | **Imported** directly, live in Supabase now. |
-| `Promotions` | 45 | **Imported** directly, live in Supabase now. |
-| `Inventory` | 197 | **Imported** directly, live in Supabase now. |
-| `Customers_Core` | 2,500 | Staged, see below. |
-| `Customers_Contact` | 2,500 | Staged, see below. |
-| `Orders` | 15,324 (14,865 + 459 April) | Staged, see below. |
-| `OrderLines` | 25,294 (24,509 + 785 April) | Staged, see below. |
-| `RentalTransactions` | 17,991 (17,059 + 932 April) | Staged, see below. |
-| `OrderPromotions` | 14,607 (14,053 + 554 April) | Staged, see below. |
+| Table | Historical rows | Live table count (incl. pre-existing web test rows) | Status |
+|---|---|---|---|
+| `Stores` | 3 | 3 | **Imported**, verified |
+| `Employees` | 8 (7 real + 1 synthetic `WEB` row) | 8 | **Imported**, verified |
+| `Promotions` | 45 | 45 | **Imported**, verified |
+| `Inventory` | 197 | 197 | **Imported**, verified |
+| `Customers_Core` | 2,500 | 2,501 (+1 web) | **Imported**, verified |
+| `Customers_Contact` | 2,500 | 2,501 (+1 web) | **Imported**, verified — see email note below |
+| `Orders` | 15,324 (14,865 + 459 April) | 15,326 (+2 web) | **Imported**, verified |
+| `OrderLines` | 25,294 (24,509 + 785 April) | 25,296 (+2 web) | **Imported**, verified |
+| `RentalTransactions` | 17,991 (17,059 + 932 April) | 17,991 | **Imported**, verified |
+| `OrderPromotions` | 14,607 (14,053 + 554 April) | 14,607 | **Imported**, verified |
 
-**Why the six largest tables are staged rather than already imported, and the one manual step this needs:** this project's sandbox cannot reach Supabase's network directly (confirmed by testing; every write has to go through a tool that requires the full row data to be typed out first) and hand-typing ~78,000 rows through that tool is not practical or reliable. Instead, all six tables were converted from the workbooks into clean JSON files at `scripts/import-data/*.json` (already inside the repo, already validated - see the referential-integrity checks in section 5, which were run against this exact data), plus a ready-to-run, idempotent importer at `scripts/import-historical-data.mjs`.
+**Method used:** the sandbox this assistant runs in cannot reach Supabase's network directly, so all six large tables were converted to JSON (`scripts/import-data/*.json`) and loaded via a standalone, idempotent Node script (`scripts/import-historical-data.mjs`, upserts on real primary keys with `ignoreDuplicates: true`) run by the site owner on their own machine. Two issues surfaced and were fixed before the final successful run:
 
-**Manual step needed:** run this once, from a machine with normal internet access (your own computer, not this chat):
-```
-node --env-file=.env.local scripts/import-historical-data.mjs
-```
-It needs `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local` (the same file the website already uses). It takes well under a minute, prints a per-table summary, and is safe to run more than once — every row upserts against its real primary key with duplicates ignored, so a second run adds zero rows. The dashboard and every query below are already written against the assumption that this data exists; until this script runs, the dashboard will correctly show real (small) numbers from just the 2 live web orders plus the small reference tables above, and will show larger, complete numbers once the historical rows land.
-
----
-*This section will be updated with the script's actual printed summary once you've run it and shared the output, or Claude can re-query row counts directly in a future session to confirm.*
+1. **`.env.local` misconfiguration** — the Supabase secret key had been mistakenly assigned to the Stripe variable name, and the real key had no variable name in front of it at all, causing "Invalid API key" failures on the first run. Fixed by correcting the variable assignment (the actual key value was never re-typed or exposed further than necessary to fix it).
+2. **Duplicate customer emails (a real data-quality issue in the source spreadsheet, not an import bug):** 288 groups of customers (659 rows total) share the same email address — mostly common `firstname.lastname@gmail.com`-style addresses reused across unrelated synthetic customer records in the "Educational Case Dataset." The live database correctly enforces one account per email (case-insensitive, `Customers_Contact` unique index on `lower(Email)`), and the import failed on this constraint for all 2,500 `Customers_Contact` rows in one batch. Rather than invent fake uni
