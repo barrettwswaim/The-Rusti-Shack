@@ -38,6 +38,7 @@ import RecentOrdersTable from '@/components/management/RecentOrdersTable';
 import ForecastSection from '@/components/management/ForecastSection';
 import InventoryStatusSection from '@/components/management/InventoryStatusSection';
 import ExportsSection from '@/components/management/ExportsSection';
+import AllTimeSalesChart from '@/components/management/AllTimeSalesChart';
 
 export const metadata = {
   title: 'Back Office | The Rusti Shack',
@@ -145,6 +146,8 @@ export default async function ManagementPage({ searchParams }) {
             </Link>
           ))}
         </div>
+
+        <AllTimeSalesChart monthly={monthlyAllYears} />
 
         <QuickOverview last7={last7} overview={overview} yearLabel={yearLabel} />
 
