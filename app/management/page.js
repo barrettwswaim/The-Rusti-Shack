@@ -29,8 +29,8 @@ import {
   SalesVsRentalChart,
   CategoryChart,
   ChannelTable,
-  buildSeasonalityInsight,
 } from '@/components/management/HistoricalPerformanceCharts';
+import { buildSeasonalityInsight } from '@/lib/managementInsights';
 import ProductProfitabilitySection from '@/components/management/ProductProfitabilityTables';
 import CustomerOperationsInsights from '@/components/management/CustomerOperationsInsights';
 import QuickOverview from '@/components/management/QuickOverview';

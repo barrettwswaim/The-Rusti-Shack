@@ -81,24 +81,13 @@ export function buildCategoryChartTitle(categoryData, yearLabel) {
   return `${top.category} Led All Categories at ${money(top.revenue)} in ${yearLabel}`;
 }
 
-// Plain-language seasonality note built from the same monthly data,
-// grouped by calendar quarter (Q1-Q4) rather than assuming a specific
-// "dive season" the source data doesn't actually label.
-export function buildSeasonalityInsight(monthly) {
-  if (!monthly.length) return 'Not enough monthly data yet to identify a seasonal pattern.';
-  const quarters = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 };
-  for (const m of monthly) {
-    const month = new Date(`${m.monthStart}T00:00:00`).getMonth();
-    const q = month < 3 ? 'Q1' : month < 6 ? 'Q2' : month < 9 ? 'Q3' : 'Q4';
-    quarters[q] += m.totalRevenue;
-  }
-  const total = Object.values(quarters).reduce((a, b) => a + b, 0);
-  if (total === 0) return 'No revenue recorded yet - a seasonal pattern will show once orders come in.';
-  const [topQ, topRevenue] = Object.entries(quarters).reduce((a, b) => (b[1] > a[1] ? b : a));
-  const share = Math.round((topRevenue / total) * 100);
-  const qLabel = { Q1: 'January-March', Q2: 'April-June', Q3: 'July-September', Q4: 'October-December' }[topQ];
-  return `${topQ} (${qLabel}) is the strongest quarter across the selected period, bringing in ${share}% of total revenue.`;
-}
+// NOTE: buildSeasonalityInsight used to live here, but this file is
+// 'use client' (recharts needs the browser) and app/management/page.js
+// is a Server Component that calls it as a plain function, not JSX -
+// that combination throws at runtime ("not possible to invoke a client
+// function from the server"). Moved to lib/managementInsights.js,
+// which has no React/browser dependency, so the server can call it
+// directly. See that file for the implementation.
 
 function ChartCard({ title, children, height = 280 }) {
   return (
@@ -224,3 +213,5 @@ export function ChannelTable({ channelPerf }) {
 }
 
 export { CATEGORY_COLORS, monthLabel, money, moneyFull };
+// buildSeasonalityInsight is no longer exported from here - import it
+// from '@/lib/managementInsights' instead (server-safe).
