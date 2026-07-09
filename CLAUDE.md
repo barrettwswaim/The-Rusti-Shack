@@ -86,3 +86,5 @@ Every product can be:
 - Do not scaffold or build the actual site until asked — this file exists so that whenever building starts, it starts with the right foundation instead of a generic template.
 
 Follow every rule in SECURITY.md.
+
+Follow every rule in AI_MANAGEMENT_SECURITY.md.
